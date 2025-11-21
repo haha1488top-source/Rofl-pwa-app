@@ -3,99 +3,430 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rico PWA</title>
-    
-    <!-- iOS метатеги (КРИТИЧНО ДЛЯ iOS) -->
+    <meta name="theme-color" content="#0000ff">
+    <title>Клікер для телефона</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="Img/pin_dead_box.png">
+    <link rel="apple-touch-icon" href="Img/pin_dead_box.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Rico">
-    <link rel="apple-touch-icon" href="./img/icon.png">
-    
-    <!-- PWA метатеги -->
-    <meta name="theme-color" content="#007bff">
-    <link rel="icon" type="image/png" href="./img/icon.png">
-    <link rel="manifest" href="./manifest.json">
-    
+    <meta name="apple-mobile-web-app-title" content="Клікер">
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
-            background-color: #007bff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            font-family: Arial, sans-serif;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
+            box-sizing: border-box;
         }
         
-        .container {
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            touch-action: manipulation;
+            transition: background 0.5s ease;
+        }
+
+        body.shop-open {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%);
+        }
+
+        /* НОВА ПАНЕЛЬ МОНЕТ */
+        .coin-panel {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(255,255,255,0.9);
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .coin-icon {
+            font-size: 24px;
+        }
+
+        .scene {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .counter {
+            font-size: 42px;
+            color: white;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
             text-align: center;
         }
-        
-        .rico-image {
-            max-width: 300px;
-            height: auto;
+
+        .clicker-img {
+            width: 250px;
+            height: 250px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            user-select: none;
+            border-radius: 20px;
+            margin-bottom: 15px;
         }
-        
-        .install-btn {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: white;
-            color: #007bff;
+
+        .clicker-img:active {
+            transform: scale(0.9);
+        }
+
+        .shop-btn {
+            margin: 10px 0;
+            padding: 15px 30px;
+            font-size: 18px;
+            background: #4CAF50;
+            color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 80%;
+            max-width: 280px;
+        }
+
+        .reset-btn {
+            margin-top: 10px;
+            padding: 12px 25px;
+            font-size: 18px;
+            background: #ff5722;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 80%;
+            max-width: 280px;
+        }
+
+        .status {
+            margin-top: 15px;
+            color: white;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        /* Стилі для магазину */
+        .shop-scene {
+            display: none;
+        }
+
+        .back-btn {
+            margin: 20px 0;
+            padding: 12px 25px;
+            font-size: 18px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 80%;
+            max-width: 280px;
+        }
+
+        .shop-items {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .shop-item {
+            padding: 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 15px;
+            color: white;
+            text-align: center;
+            cursor: pointer;
+            border: 2px solid rgba(255,255,255,0.3);
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .shop-item:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+
+        /* НОВЕ СПЛИВАЮЧЕ ВІКНО ДЛЯ PWA */
+        .pwa-toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            z-index: 10000;
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 300px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .pwa-toast.show {
+            display: flex;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+
+        .pwa-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .pwa-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .pwa-install-btn {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
-            display: none;
+        }
+
+        .pwa-cancel-btn {
+            padding: 10px 20px;
+            background: #ff5722;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <img src="./img/rico_egg_rico_pin.png" alt="Rico" class="rico-image">
-        <button class="install-btn" id="installButton">Встановити додаток</button>
+    <!-- НОВА ПАНЕЛЬ МОНЕТ -->
+    <div class="coin-panel">
+        <span class="coin-icon">🪙</span>
+        <span id="coinCount">0</span>
+    </div>
+
+    <!-- НОВЕ СПЛИВАЮЧЕ ВІКНО PWA -->
+    <div class="pwa-toast" id="pwaToast">
+        <div class="pwa-title">📱 Встановити додаток?</div>
+        <div class="pwa-buttons">
+            <button class="pwa-install-btn" onclick="installPWA()">Так</button>
+            <button class="pwa-cancel-btn" onclick="hidePWAToast()">Ні</button>
+        </div>
+    </div>
+
+    <!-- Головна сцена -->
+    <div class="scene main-scene" id="mainScene">
+        <div class="counter">Кліків: <span id="count">0</span></div>
+        <img src="Img/pin_dead_box.png" class="clicker-img" id="clicker" alt="Клікер">
+        <button class="shop-btn" onclick="openShop()">Магазин</button>
+        <button class="reset-btn" onclick="resetCounter()">Скинути</button>
+        <div class="status" id="status">Гра завантажена! Тисни на картинку 👆</div>
+    </div>
+
+    <!-- Сцена магазину -->
+    <div class="scene shop-scene" id="shopScene">
+        <div class="counter">🏪 Магазин</div>
+        <div class="shop-items">
+            <div class="shop-item" onclick="buyUpgrade('autoClick')">🤖 Автоклікер<br><small>100 кліків</small></div>
+            <div class="shop-item" onclick="buyUpgrade('doubleClick')">⚡ Подвійний клік<br><small>200 кліків</small></div>
+            <div class="shop-item" onclick="buyUpgrade('megaClick')">💥 Мега клік<br><small>500 кліків</small></div>
+        </div>
+        <button class="back-btn" onclick="closeShop()">⬅️ Назад до гри</button>
+        <div class="status">Твої кліків: <span id="shopCount">0</span></div>
     </div>
 
     <script>
-        // Обробник встановлення PWA
+        // Глобальні змінні
+        let count = parseInt(localStorage.getItem('clickCount')) || 0;
+        let coins = parseInt(localStorage.getItem('gameCoins')) || 0; // НОВА ЗМІННА МОНЕТ
+        let upgrades = JSON.parse(localStorage.getItem('gameUpgrades')) || {
+            autoClick: false,
+            doubleClick: false,
+            megaClick: false
+        };
         let deferredPrompt;
-        const installButton = document.getElementById('installButton');
 
+        const counterElement = document.getElementById('count');
+        const coinCountElement = document.getElementById('coinCount'); // НОВИЙ ЕЛЕМЕНТ
+        const clickerImg = document.getElementById('clicker');
+        const statusElement = document.getElementById('status');
+        const shopScene = document.getElementById('shopScene');
+        const mainScene = document.getElementById('mainScene');
+        const shopCountElement = document.getElementById('shopCount');
+        const pwaToast = document.getElementById('pwaToast');
+
+        function updateCounter() {
+            counterElement.textContent = count;
+            shopCountElement.textContent = count;
+            coinCountElement.textContent = coins; // ОНОВЛЮЄМО МОНЕТИ
+            localStorage.setItem('clickCount', count);
+            localStorage.setItem('gameCoins', coins); // ЗБЕРІГАЄМО МОНЕТИ
+        }
+
+        function resetCounter() {
+            if(confirm('Скинути рахунок?')) {
+                count = 0;
+                coins = 0; // СКИДАЄМО МОНЕТИ
+                upgrades = { autoClick: false, doubleClick: false, megaClick: false };
+                updateCounter();
+                localStorage.setItem('gameUpgrades', JSON.stringify(upgrades));
+            }
+        }
+
+        function openShop() {
+            mainScene.style.display = 'none';
+            shopScene.style.display = 'flex';
+            document.body.classList.add('shop-open');
+        }
+
+        function closeShop() {
+            shopScene.style.display = 'none';
+            mainScene.style.display = 'flex';
+            document.body.classList.remove('shop-open');
+        }
+
+        function buyUpgrade(type) {
+            const costs = { autoClick: 100, doubleClick: 200, megaClick: 500 };
+            if (count >= costs[type] && !upgrades[type]) {
+                count -= costs[type];
+                coins += 10; // ДОДАЄМО МОНЕТИ ЗА ПОКУПКУ
+                upgrades[type] = true;
+                updateCounter();
+                localStorage.setItem('gameUpgrades', JSON.stringify(upgrades));
+                alert('🎉 Покращення куплено! +10 монет!');
+                if (type === 'autoClick') {
+                    startAutoClicker();
+                }
+            } else if (upgrades[type]) {
+                alert('ℹ️ Вже куплено!');
+            } else {
+                alert('❌ Недостатньо кліків!');
+            }
+        }
+
+        function handleClick() {
+            let clickValue = 1;
+            if (upgrades.doubleClick) clickValue *= 2;
+            if (upgrades.megaClick) clickValue *= 5;
+            
+            count += clickValue;
+            // КОЖЕН КЛІК ДОДАЄ МОНЕТИ
+            coins += Math.floor(clickValue * 0.1); // 10% від кліків у монети
+            updateCounter();
+        }
+
+        function startAutoClicker() {
+            if (upgrades.autoClick) {
+                setInterval(() => {
+                    count += 1;
+                    coins += 0.1; // АВТОКЛІКЕР ТЕЖ ДОДАЄ МОНЕТИ
+                    updateCounter();
+                }, 1000);
+            }
+        }
+
+        // НОВИЙ КОД ДЛЯ СПЛИВАЮЧОГО ВІКНА PWA
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            installButton.style.display = 'block';
+            
+            // Показуємо спливаюче вікно через 3 секунди
+            setTimeout(() => {
+                showPWAToast();
+            }, 3000);
         });
 
-        installButton.addEventListener('click', async () => {
+        function showPWAToast() {
             if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    installButton.style.display = 'none';
-                }
-                deferredPrompt = null;
+                pwaToast.classList.add('show');
             }
-        });
-
-        // Реєстрація Service Worker (як у робочому клікері)
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('./service-worker.js')
-                    .then((registration) => {
-                        console.log('Service Worker зареєстрований:', registration);
-                    })
-                    .catch((error) => {
-                        console.log('Помилка реєстрації Service Worker:', error);
-                    });
-            });
         }
 
-        // Перевірка PWA режиму на iOS
-        if (window.navigator.standalone) {
-            console.log('Запущено в PWA режимі на iOS');
+        function hidePWAToast() {
+            pwaToast.classList.remove('show');
+        }
+
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        hidePWAToast();
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        }
+
+        // Автоматично ховаємо спливаюче вікно через 10 секунд
+        setTimeout(hidePWAToast, 10000);
+
+        // Обробка кліків
+        clickerImg.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleClick();
+            clickerImg.style.transform = 'scale(0.9)';
+        });
+
+        clickerImg.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            clickerImg.style.transform = 'scale(1)';
+        });
+
+        clickerImg.addEventListener('click', () => {
+            handleClick();
+            clickerImg.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                clickerImg.style.transform = 'scale(1)';
+            }, 100);
+        });
+
+        // Автозбереження
+        setInterval(() => {
+            localStorage.setItem('clickCount', count);
+            localStorage.setItem('gameCoins', coins);
+            localStorage.setItem('gameUpgrades', JSON.stringify(upgrades));
+        }, 1000);
+
+        // Ініціалізація
+        updateCounter();
+        startAutoClicker();
+        statusElement.textContent = 'Гра завантажена! Тисни на картинку 👆';
+
+        // Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('./service-worker.js');
+            });
         }
     </script>
 </body>
