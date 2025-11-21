@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rico-pwa-v3';
+const CACHE_NAME = 'rico-pwa-v5';
 const urlsToCache = [
     './',
     './index.html',
