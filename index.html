@@ -190,6 +190,8 @@
         let count = parseInt(localStorage.getItem('clickCount')) || 0;
         let coins = parseInt(localStorage.getItem('gameCoins')) || 0;
         let deferredPrompt;
+        let isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        let isAndroid = /Android/.test(navigator.userAgent);
 
         const counterElement = document.getElementById('count');
         const coinCountElement = document.getElementById('coinCount');
@@ -211,20 +213,35 @@
             updateCounter();
         }
 
-        // PWA спливаюче вікно
+        // Покращений обробник PWA для Android Chrome
         window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('beforeinstallprompt fired!', e);
             e.preventDefault();
             deferredPrompt = e;
             
-            // Показуємо спливаюче вікно через 3 секунди
-            setTimeout(() => {
-                showPWAToast();
-            }, 3000);
+            // Для Android Chrome показуємо спливаюче вікно одразу
+            if (isAndroid) {
+                setTimeout(() => {
+                    showPWAToast();
+                }, 2000);
+            }
+            // Для iOS показуємо кнопку
+            else if (isIOS) {
+                installButton.style.display = 'block';
+            }
         });
 
+        // Додаткова перевірка через 5 секунд
+        setTimeout(() => {
+            if (deferredPrompt && isAndroid) {
+                showPWAToast();
+            }
+        }, 5000);
+
         function showPWAToast() {
-            if (deferredPrompt) {
+            if (deferredPrompt && !isIOS) {
                 pwaToast.classList.add('show');
+                console.log('PWA toast shown');
             }
         }
 
@@ -236,16 +253,25 @@
             if (deferredPrompt) {
                 deferredPrompt.prompt();
                 deferredPrompt.userChoice.then((choiceResult) => {
+                    console.log('User choice:', choiceResult.outcome);
                     if (choiceResult.outcome === 'accepted') {
                         hidePWAToast();
+                        installButton.style.display = 'none';
                     }
                     deferredPrompt = null;
                 });
             }
         }
 
-        // Автоматично ховаємо спливаюче вікно через 10 секунд
-        setTimeout(hidePWAToast, 10000);
+        // Перевірка чи вже встановлений додаток
+        window.addEventListener('appinstalled', (evt) => {
+            console.log('Додаток встановлено!');
+            hidePWAToast();
+            installButton.style.display = 'none';
+        });
+
+        // Автоматично ховаємо спливаюче вікно через 15 секунд
+        setTimeout(hidePWAToast, 15000);
 
         // Обробка кліків
         clickerImg.addEventListener('touchstart', (e) => {
@@ -280,9 +306,37 @@
         // Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
-                navigator.serviceWorker.register('./service-worker.js');
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker зареєстрований:', registration);
+                        // Перевіряємо чи доступний PWA
+                        checkPWAStatus();
+                    })
+                    .catch(error => {
+                        console.log('Помилка Service Worker:', error);
+                    });
             });
         }
+
+        function checkPWAStatus() {
+            // Додаткова перевірка для Android
+            if (isAndroid && !deferredPrompt) {
+                setTimeout(() => {
+                    if (window.matchMedia('(display-mode: standalone)').matches) {
+                        console.log('Вже встановлено');
+                    } else {
+                        console.log('PWA доступний для встановлення');
+                        // Спробуємо показати спливаюче вікно ще раз
+                        showPWAToast();
+                    }
+                }, 3000);
+            }
+        }
+
+        // Логування для дебагу
+        console.log('User Agent:', navigator.userAgent);
+        console.log('Is Android:', isAndroid);
+        console.log('Is iOS:', isIOS);
     </script>
 </body>
 </html>
