@@ -7,11 +7,11 @@
     
     <!-- PWA метатеги -->
     <meta name="theme-color" content="#007bff">
-    <link rel="icon" type="image/png" href="img/icon.png">
-    <link rel="apple-touch-icon" href="img/icon.png">
+    <link rel="icon" type="image/png" href="./img/icon.png">
+    <link rel="apple-touch-icon" href="./img/icon.png">
     
     <!-- PWA маніфест -->
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="./manifest.json">
     
     <style>
         body {
@@ -33,108 +33,19 @@
             max-width: 300px;
             height: auto;
         }
-        
-        .install-btn {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: white;
-            color: #007bff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            display: none;
-        }
-        
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            display: none;
-            z-index: 1000;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <img src="img/rico_egg_rico_pin.png" alt="Rico" class="rico-image">
-        <button class="install-btn" id="installButton">Встановити додаток</button>
-    </div>
-
-    <div class="toast" id="toast">
-        <p>Хочете встановити додаток?</p>
-        <button id="toastInstall">Так</button>
-        <button id="toastCancel">Ні</button>
+        <img src="./img/rico_egg_rico_pin.png" alt="Rico" class="rico-image">
+        <p style="color: white; margin-top: 20px;">Rico PWA працює!</p>
     </div>
 
     <script>
-        let deferredPrompt;
-        const installButton = document.getElementById('installButton');
-        const toast = document.getElementById('toast');
-        const toastInstall = document.getElementById('toastInstall');
-        const toastCancel = document.getElementById('toastCancel');
-
-        // Основний обробник встановлення
-        window.addEventListener('beforeinstallprompt', (e) => {
-            console.log('beforeinstallprompt fired');
-            e.preventDefault();
-            deferredPrompt = e;
-            
-            // Показуємо кнопку через 3 секунди
-            setTimeout(() => {
-                installButton.style.display = 'block';
-                // Або автоматично показуємо спливаюче вікно:
-                // toast.style.display = 'block';
-            }, 3000);
-        });
-
-        // Обробник кнопки встановлення
-        installButton.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log(`Користувач ${outcome} встановлення`);
-                if (outcome === 'accepted') {
-                    installButton.style.display = 'none';
-                    toast.style.display = 'none';
-                }
-                deferredPrompt = null;
-            }
-        });
-
-        // Обробники для спливаючого вікна
-        toastInstall.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    installButton.style.display = 'none';
-                    toast.style.display = 'none';
-                }
-                deferredPrompt = null;
-            }
-        });
-
-        toastCancel.addEventListener('click', () => {
-            toast.style.display = 'none';
-        });
-
-        // Перевірка чи вже встановлений додаток
-        window.addEventListener('appinstalled', (evt) => {
-            console.log('Додаток встановлено');
-            installButton.style.display = 'none';
-            toast.style.display = 'none';
-        });
-
-        // Реєстрація Service Worker
+        // Реєстрація Service Worker з правильним scope
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
+                navigator.serviceWorker.register('./sw.js', { scope: './' })
                     .then((registration) => {
                         console.log('Service Worker зареєстрований:', registration);
                     })
@@ -144,13 +55,10 @@
             });
         }
 
-        // Додаткова перевірка через 5 секунд
-        setTimeout(() => {
-            if (!deferredPrompt && installButton.style.display === 'none') {
-                console.log('PWA умови не виконані');
-                // Можна показати повідомлення, що браузер не підтримує
-            }
-        }, 5000);
+        // Обробник для iOS
+        if (window.navigator.standalone) {
+            console.log('Запущено в режимі PWA на iOS');
+        }
     </script>
 </body>
 </html>
