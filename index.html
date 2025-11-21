@@ -5,30 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rico PWA</title>
     
-    <!-- PWA метатеги -->
     <meta name="theme-color" content="#007bff">
-    <link rel="icon" type="image/png" href="./img/icon.png">
-    <link rel="apple-touch-icon" href="./img/icon.png">
-    
-    <!-- PWA маніфест -->
-    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" href="img/icon.png">
+    <link rel="apple-touch-icon" href="img/icon.png">
+    <link rel="manifest" href="manifest.json">
     
     <style>
         body {
             margin: 0;
             padding: 0;
-            background-color: #007bff;
+            background: #007bff;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             font-family: Arial, sans-serif;
         }
-        
         .container {
             text-align: center;
         }
-        
         .rico-image {
             max-width: 300px;
             height: auto;
@@ -37,27 +32,16 @@
 </head>
 <body>
     <div class="container">
-        <img src="./img/rico_egg_rico_pin.png" alt="Rico" class="rico-image">
-        <p style="color: white; margin-top: 20px;">Rico PWA працює!</p>
+        <img src="img/rico_egg_rico_pin.png" alt="Rico" class="rico-image">
+        <p style="color: white; margin-top: 20px;">Rico PWA працює! 🚀</p>
     </div>
 
     <script>
-        // Реєстрація Service Worker з правильним scope
+        // Service Worker
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js', { scope: './' })
-                    .then((registration) => {
-                        console.log('Service Worker зареєстрований:', registration);
-                    })
-                    .catch((error) => {
-                        console.log('Помилка реєстрації Service Worker:', error);
-                    });
-            });
-        }
-
-        // Обробник для iOS
-        if (window.navigator.standalone) {
-            console.log('Запущено в режимі PWA на iOS');
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log('SW registered'))
+                .catch(err => console.log('SW error:', err));
         }
     </script>
 </body>
