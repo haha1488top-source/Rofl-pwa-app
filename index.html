@@ -5,12 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rico PWA</title>
     
+    <!-- iOS метатеги (КРИТИЧНО ДЛЯ iOS) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Rico">
+    <link rel="apple-touch-icon" href="./img/icon.png">
+    
     <!-- PWA метатеги -->
     <meta name="theme-color" content="#007bff">
     <link rel="icon" type="image/png" href="./img/icon.png">
-    <link rel="apple-touch-icon" href="./img/icon.png">
-    
-    <!-- PWA маніфест -->
     <link rel="manifest" href="./manifest.json">
     
     <style>
@@ -23,6 +26,8 @@
             align-items: center;
             height: 100vh;
             font-family: Arial, sans-serif;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
         }
         
         .container {
@@ -43,13 +48,14 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <img src="./img/rico_egg_rico_pin.png" alt="Rico" class="rico-image">
-        <button class="install-btn" id="installButton" style="display: none;">Встановити додаток</button>
+        <button class="install-btn" id="installButton">Встановити додаток</button>
     </div>
 
     <script>
@@ -74,10 +80,10 @@
             }
         });
 
-        // Реєстрація Service Worker
+        // Реєстрація Service Worker (як у робочому клікері)
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('./service-worker.js')
                     .then((registration) => {
                         console.log('Service Worker зареєстрований:', registration);
                     })
@@ -85,6 +91,11 @@
                         console.log('Помилка реєстрації Service Worker:', error);
                     });
             });
+        }
+
+        // Перевірка PWA режиму на iOS
+        if (window.navigator.standalone) {
+            console.log('Запущено в PWA режимі на iOS');
         }
     </script>
 </body>
