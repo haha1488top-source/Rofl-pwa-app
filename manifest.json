@@ -2,8 +2,8 @@
     "name": "Rico PWA",
     "short_name": "Rico",
     "description": "PWA додаток з Rico",
-    "start_url": "/rico-pwa/",
-    "scope": "/rico-pwa/",
+    "start_url": "/",
+    "scope": "/",
     "display": "standalone",
     "background_color": "#007bff",
     "theme_color": "#007bff",
@@ -16,7 +16,7 @@
         },
         {
             "src": "img/icon.png",
-            "sizes": "512x512",
+            "sizes": "512x512", 
             "type": "image/png"
         }
     ]
