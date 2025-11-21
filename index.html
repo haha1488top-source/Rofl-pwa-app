@@ -5,43 +5,86 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rico PWA</title>
     
+    <!-- PWA метатеги -->
     <meta name="theme-color" content="#007bff">
-    <link rel="icon" href="img/icon.png">
-    <link rel="apple-touch-icon" href="img/icon.png">
-    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="./img/icon.png">
+    <link rel="apple-touch-icon" href="./img/icon.png">
+    
+    <!-- PWA маніфест -->
+    <link rel="manifest" href="./manifest.json">
     
     <style>
         body {
             margin: 0;
             padding: 0;
-            background: #007bff;
+            background-color: #007bff;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             font-family: Arial, sans-serif;
         }
+        
         .container {
             text-align: center;
         }
+        
         .rico-image {
             max-width: 300px;
             height: auto;
+        }
+        
+        .install-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: white;
+            color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <img src="img/rico_egg_rico_pin.png" alt="Rico" class="rico-image">
-        <p style="color: white; margin-top: 20px;">Rico PWA працює! 🚀</p>
+        <img src="./img/rico_egg_rico_pin.png" alt="Rico" class="rico-image">
+        <button class="install-btn" id="installButton" style="display: none;">Встановити додаток</button>
     </div>
 
     <script>
-        // Service Worker
+        // Обробник встановлення PWA
+        let deferredPrompt;
+        const installButton = document.getElementById('installButton');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installButton.style.display = 'block';
+        });
+
+        installButton.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    installButton.style.display = 'none';
+                }
+                deferredPrompt = null;
+            }
+        });
+
+        // Реєстрація Service Worker
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(() => console.log('SW registered'))
-                .catch(err => console.log('SW error:', err));
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((registration) => {
+                        console.log('Service Worker зареєстрований:', registration);
+                    })
+                    .catch((error) => {
+                        console.log('Помилка реєстрації Service Worker:', error);
+                    });
+            });
         }
     </script>
 </body>
