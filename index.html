@@ -17,7 +17,7 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: #007bff; /* блакитний фон */
+            background-color: #007bff;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -43,35 +43,92 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
+            display: none;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 1000;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <img src="img/rico_egg_rico_pin.png" alt="Rico" class="rico-image">
-        <button class="install-btn" id="installButton" style="display: none;">Встановити додаток</button>
+        <button class="install-btn" id="installButton">Встановити додаток</button>
+    </div>
+
+    <div class="toast" id="toast">
+        <p>Хочете встановити додаток?</p>
+        <button id="toastInstall">Так</button>
+        <button id="toastCancel">Ні</button>
     </div>
 
     <script>
-        // Обробник встановлення PWA
         let deferredPrompt;
         const installButton = document.getElementById('installButton');
+        const toast = document.getElementById('toast');
+        const toastInstall = document.getElementById('toastInstall');
+        const toastCancel = document.getElementById('toastCancel');
 
+        // Основний обробник встановлення
         window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('beforeinstallprompt fired');
             e.preventDefault();
             deferredPrompt = e;
-            installButton.style.display = 'block';
+            
+            // Показуємо кнопку через 3 секунди
+            setTimeout(() => {
+                installButton.style.display = 'block';
+                // Або автоматично показуємо спливаюче вікно:
+                // toast.style.display = 'block';
+            }, 3000);
         });
 
+        // Обробник кнопки встановлення
         installButton.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`Користувач ${outcome} встановлення`);
+                if (outcome === 'accepted') {
+                    installButton.style.display = 'none';
+                    toast.style.display = 'none';
+                }
+                deferredPrompt = null;
+            }
+        });
+
+        // Обробники для спливаючого вікна
+        toastInstall.addEventListener('click', async () => {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
                 if (outcome === 'accepted') {
                     installButton.style.display = 'none';
+                    toast.style.display = 'none';
                 }
                 deferredPrompt = null;
             }
+        });
+
+        toastCancel.addEventListener('click', () => {
+            toast.style.display = 'none';
+        });
+
+        // Перевірка чи вже встановлений додаток
+        window.addEventListener('appinstalled', (evt) => {
+            console.log('Додаток встановлено');
+            installButton.style.display = 'none';
+            toast.style.display = 'none';
         });
 
         // Реєстрація Service Worker
@@ -86,6 +143,14 @@
                     });
             });
         }
+
+        // Додаткова перевірка через 5 секунд
+        setTimeout(() => {
+            if (!deferredPrompt && installButton.style.display === 'none') {
+                console.log('PWA умови не виконані');
+                // Можна показати повідомлення, що браузер не підтримує
+            }
+        }, 5000);
     </script>
 </body>
 </html>
