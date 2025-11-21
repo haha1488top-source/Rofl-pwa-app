@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rico-pwa-v2';
+const CACHE_NAME = 'rico-pwa-v3';
 const urlsToCache = [
     './',
     './index.html',
@@ -12,7 +12,7 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
-                console.log('Кеш відкрито');
+                console.log('Кешуються файли');
                 return cache.addAll(urlsToCache);
             })
     );
@@ -22,10 +22,14 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
         caches.match(event.request)
             .then((response) => {
-                if (response) {
-                    return response;
+                // Повертаємо кешовану версію або робимо запит
+                return response || fetch(event.request);
+            })
+            .catch(() => {
+                // Fallback для головної сторінки
+                if (event.request.mode === 'navigate') {
+                    return caches.match('./index.html');
                 }
-                return fetch(event.request);
             })
     );
 });
